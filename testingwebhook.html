@@ -349,13 +349,17 @@
                 };
 
                 ws.onerror = (e) => {
-                    log('WebSocket Error: Could not connect', 'error');
-                    console.error(e);
+                    log('WebSocket Error: The connection was refused or lost. Check if your server is running and the URL is correct.', 'error');
+                    console.error('WebSocket Error Object:', e);
                     stopCall();
                 };
 
-                ws.onclose = () => {
-                    log('Connection closed', 'info');
+                ws.onclose = (event) => {
+                    if (event.code === 4001) {
+                        log('Connection Closed: Invalid Auth Token (Unauthorized)', 'error');
+                    } else {
+                        log(`Connection closed (Code: ${event.code})`, 'info');
+                    }
                     stopCall();
                 };
 

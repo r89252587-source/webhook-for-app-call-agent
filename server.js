@@ -18,8 +18,17 @@ wss.on("connection", (ws, req) => {
     console.log(`📞 New client connected: ${clientId}`);
 
     // 🔐 Basic Auth Check (Headers or Query Param)
-    const urlParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
-    const token = req.headers["authorization"] || `Bearer ${urlParams.get("token")}`;
+    let token = req.headers["authorization"];
+    
+    if (!token) {
+        try {
+            const url = new URL(req.url, 'http://localhost');
+            const queryToken = url.searchParams.get("token");
+            if (queryToken) token = `Bearer ${queryToken}`;
+        } catch (e) {
+            console.error("Auth parsing error:", e.message);
+        }
+    }
 
     if (token !== `Bearer ${AUTH_TOKEN}`) {
         console.log("❌ Unauthorized connection attempt");
