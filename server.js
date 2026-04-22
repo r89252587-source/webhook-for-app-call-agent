@@ -1,14 +1,24 @@
 require("dotenv").config();
+const http = require("http");
 const WebSocket = require("ws");
 const axios = require("axios");
 const { v4: uuidv4 } = require("uuid");
 
+
 const PORT = process.env.PORT || 3000;
 const AUTH_TOKEN = process.env.AUTH_TOKEN;
 
-const wss = new WebSocket.Server({ port: PORT });
+const server = http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end("AI Call Agent Server is running!");
+});
 
-console.log("🚀 AI Call WebSocket Server running on port", PORT);
+const wss = new WebSocket.Server({ server });
+
+server.listen(PORT, () => {
+    console.log("🚀 AI Call WebSocket Server running on port", PORT);
+});
+
 
 // ==========================
 // Connection Handler
@@ -19,7 +29,7 @@ wss.on("connection", (ws, req) => {
 
     // 🔐 Basic Auth Check (Headers or Query Param)
     let token = req.headers["authorization"];
-    
+
     if (!token) {
         try {
             const url = new URL(req.url, 'http://localhost');
