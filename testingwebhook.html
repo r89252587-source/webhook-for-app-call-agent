@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Call Agent | Webhook Tester</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@300;400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-stop {
+            background: var(--danger);
+            color: white;
+            display: none;
+        }
+
+        .status-area {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            font-family: monospace;
+            font-size: 0.85rem;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .status-line {
+            margin-bottom: 4px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .status-line.info {
+            color: var(--text-dim);
+        }
+
+        .status-line.success {
+            color: var(--accent);
+        }
+
+        .status-line.error {
+            color: var(--danger);
+        }
+
+        .visualizer-container {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .visualizer-container.active {
+            opacity: 1;
+        }
+
+        .bar {
+            width: 4px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 2px;
+            animation: pulse 1s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                height: 8px;
+            }
+
+            50% {
+                height: 32px;
+            }
+        }
+
+        /* Responsive Scrollbar */
+        .status-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .status-area::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>AI Call Tester</h1>
+        <p class="subtitle">Test your WebSocket Voice Webhook</p>
+
+        <div class="form-group">
+            <label for="wsUrl">Webhook URL</label>
+            <input type="text" id="wsUrl" value="wss://webhook-for-app-call-agent-production.up.railway.app"
+                placeholder="wss://your-app.railway.app">
+        </div>
+
+        <div class="form-group">
+            <label for="authToken">Auth Token</label>
+            <input type="password" id="authToken" placeholder="Enter your AUTH_TOKEN">
+        </div>
+
+        <div class="visualizer-container" id="visualizer">
+            <div class="bar" style="animation-delay: 0.0s"></div>
+            <div class="bar" style="animation-delay: 0.1s"></div>
+            <div class="bar" style="animation-delay: 0.2s"></div>
+            <div class="bar" style="animation-delay: 0.3s"></div>
+            <div class="bar" style="animation-delay: 0.4s"></div>
+            <div class="bar" style="animation-delay: 0.5s"></div>
+            <div class="bar" style="animation-delay: 0.6s"></div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn" class="btn-primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" x2="12" y1="19" y2="22" />
+                    <line x1="8" x2="16" y1="22" y2="22" />
+                </svg>
+                Start Call
+            </button>
+            <button id="stopBtn" class="btn-stop">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
+                </svg>
+                End Call
+            </button>
+        </div>
+
+        <div class="status-area" id="statusArea">
+            <div class="status-line info">Ready to connect...</div>
+        </div>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusArea = document.getElementById('statusArea');
+        const visualizer = document.getElementById('visualizer');
+        const wsUrlInput = document.getElementById('wsUrl');
+        const authTokenInput = document.getElementById('authToken');
+
+        let ws;
+        let audioContext;
+        let processor;
+        let input;
+        let globalStream;
+
+        function log(message, type = 'info') {
+            const line = document.createElement('div');
+            line.className = `status-line ${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            statusArea.appendChild(line);
+            statusArea.scrollTop = statusArea.scrollHeight;
+        }
+
+        async function startCall() {
+            let url = wsUrlInput.value;
+            const token = authTokenInput.value;
+
+            if (!url) {
+                log('Please enter a WebSocket URL', 'error');
+                return;
+            }
+
+            // Append token as query param if provided
+            if (token) {
+                const urlObj = new URL(url);
+                urlObj.searchParams.set('token', token);
+                url = urlObj.toString();
+            }
+
+            try {
+                log('Connecting to WebSocket...', 'info');
+                ws = new WebSocket(url);
+                ws.binaryType = 'arraybuffer';
+
+                ws.onopen = () => {
+                    log('Connected to server', 'success');
+                    // Send auth header if server expects it (Wait, standard WS doesn't support headers easily in browser)
+                    // The server.js checks req.headers["authorization"] which usually only works if sent via proxy or initial handshake
+                    // However, we can try to send it as the first message or as a protocol, but the server expects Bearer token in headers.
+                    // Note: Browser WebSocket API doesn't support custom headers. 
+                    // Most people use a sub-protocol or query param for browser-based WS auth.
+                    // But if the server strictly checks req.headers, this might fail from browser without a proxy.
+
+                    log('Handshake successful. Initializing audio...', 'info');
+                    initAudio();
+
+                    startBtn.style.display = 'none';
+                    stopBtn.style.display = 'flex';
+                    visualizer.classList.add('active');
+                };
+
+                ws.onmessage = async (event) => {
+                    log('Received AI Response (Audio)', 'success');
+                    if (event.data instanceof ArrayBuffer) {
+                        playAudioBuffer(event.data);
+                    }
+                };
+
+                ws.onerror = (e) => {
+                    log('WebSocket Error: Could not connect', 'error');
+                    console.error(e);
+                    stopCall();
+                };
+
+                ws.onclose = () => {
+                    log('Connection closed', 'info');
+                    stopCall();
+                };
+
+            } catch (err) {
+                log(`Error: ${err.message}`, 'error');
+            }
+        }
+
+        async function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                globalStream = stream;
+                input = audioContext.createMediaStreamSource(stream);
+
+                // ScriptProcessor is deprecated but easiest for raw PCM in a simple script
+                processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+                processor.onaudioprocess = (e) => {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        const inputData = e.inputBuffer.getChannelData(0);
+                        // Convert Float32 to Int16 PCM
+                        const pcmData = convertFloat32ToInt16(inputData);
+                        ws.send(pcmData.buffer);
+                    }
+                };
+
+                input.connect(processor);
+                processor.connect(audioContext.destination);
+                log('Microphone active. Speaking...', 'success');
+
+            } catch (err) {
+                log(`Audio Error: ${err.message}`, 'error');
+            }
+        }
+
+        function convertFloat32ToInt16(buffer) {
+            let l = buffer.length;
+            let buf = new Int16Array(l);
+            while (l--) {
+                buf[l] = Math.min(1, buffer[l]) * 0x7FFF;
+            }
+            return buf;
+        }
+
+        async function playAudioBuffer(arrayBuffer) {
+            if (!audioContext) return;
+
+            try {
+                // The server sends PCM16 raw data. Browser decodeAudioData expects container (wav/mp3).
+                // We need to wrap it or play it as a BufferSource.
+                const audioBuffer = audioContext.createBuffer(1, arrayBuffer.byteLength / 2, 16000);
+                const nowBuffering = audioBuffer.getChannelData(0);
+                const int16View = new Int16Array(arrayBuffer);
+
+                for (let i = 0; i < int16View.length; i++) {
+                    nowBuffering[i] = int16View[i] / 32768;
+                }
+
+                const source = audioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(audioContext.destination);
+                source.start();
+            } catch (err) {
+                log('Error playing audio response', 'error');
+            }
+        }
+
+        function stopCall() {
+            if (ws) ws.close();
+            if (globalStream) globalStream.getTracks().forEach(track => track.stop());
+            if (audioContext) audioContext.close();
+
+            startBtn.style.display = 'flex';
+            stopBtn.style.display = 'none';
+            visualizer.classList.remove('active');
+            log('Call ended.', 'info');
+        }
+
+        startBtn.addEventListener('click', startCall);
+        stopBtn.addEventListener('click', stopCall);
+    </script>
+</body>
+
+</html>

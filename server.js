@@ -17,11 +17,13 @@ wss.on("connection", (ws, req) => {
     const clientId = uuidv4();
     console.log(`📞 New client connected: ${clientId}`);
 
-    // 🔐 Basic Auth Check
-    const token = req.headers["authorization"];
+    // 🔐 Basic Auth Check (Headers or Query Param)
+    const urlParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
+    const token = req.headers["authorization"] || `Bearer ${urlParams.get("token")}`;
+
     if (token !== `Bearer ${AUTH_TOKEN}`) {
-        console.log("❌ Unauthorized connection");
-        ws.close();
+        console.log("❌ Unauthorized connection attempt");
+        ws.close(4001, "Unauthorized");
         return;
     }
 
